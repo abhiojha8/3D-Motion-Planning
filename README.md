@@ -22,4 +22,26 @@ As we discussed, before a drone takes a flight, it needs to have a plan. A plan 
 
 ![](D:\Documents\myProjects\3d_motion_planning\random_images\search_space0.PNG)
 
-One way to think about a path from start (park) to goal (convenience store) is to think about a continuous curve through the free space between obstacles (as shown through the orange lines). 
+One way to think about a path from start (park) to goal (convenience store) is to think about a continuous curve through the free space between obstacles (as shown through the orange lines). However, the vehicle would need to make infinitely many decisions to follow any continuous curve to the goal. Due to this, the number of possible different action plans becomes infinitely large.
+
+When it comes to solving a planning problem, we often face constraints in terms of time and computational resources. The real goal is not to find the perfect solution, but to find a reasonable solution in reasonable amount of time.  Thus, choosing the right search space is key to solving the problem efficiently. 
+
+Due to computational complexities and time constraints in the continuous universe, we will recast the problem by breaking the continuous universe into a finite set of discrete states. Therefore, rather than describing the drone's path as a continuous curve, we will describe it as a series of states the vehicle must pass to reach from start to goal. Some ways to achieve this discretization are depicted in the images below
+
+* Regular grid
+
+  ![](D:\Documents\myProjects\3d_motion_planning\random_images\regular_grid.PNG)
+
+* An exotic way
+
+  ![](D:\Documents\myProjects\3d_motion_planning\random_images\exotic_way.PNG)
+
+  
+
+To represent your planning problem and defining the search space, we need the following:
+
+* All possible states
+* Start State
+* Goal State
+* Actions
+* Cost to each possible action
