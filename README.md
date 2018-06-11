@@ -45,3 +45,18 @@ To represent your planning problem and defining the search space, we need the fo
 * Goal State
 * Actions
 * Cost to each possible action
+
+The image below shows a simple way to discretize the space using grids, and mark feasible and infeasible regions of search space:
+
+![](D:\Documents\myProjects\3d_motion_planning\random_images\ud_grid.PNG)
+
+
+
+### A* Search
+
+Let `g` be the cost function, which is defined as the sum of the actions we have taken so far in the plan, and `h` be the heuristic function, which is an underestimate of the remaining cost to get from the last state of a partial plan to the goal state.
+
+* g = cost function
+* h = heuristic
+* f = g + h (estimate of total cost)
+
