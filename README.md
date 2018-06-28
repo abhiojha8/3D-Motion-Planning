@@ -24,7 +24,7 @@ Solving a planning problem mostly comes down to setting up your *search space* a
 
 As we discussed, before a drone takes a flight, it needs to have a plan. A plan is defined as a series of actions that the drone must take in order to safely and efficiently  move from some initial location to some goal location. Consider the image below:
 
-![](D:\Documents\myProjects\3d_motion_planning\random_images\search_space0.PNG)
+![](https://github.com/abhiojha8/3D-Motion-Planning/blob/master/random_images/search_space0.PNG)
 
 One way to think about a path from start (park) to goal (convenience store) is to think about a continuous curve through the free space between obstacles (as shown through the orange lines). However, the vehicle would need to make infinitely many decisions to follow any continuous curve to the goal. Due to this, the number of possible different action plans becomes infinitely large.
 
@@ -34,7 +34,7 @@ Due to computational complexities and time constraints in the continuous univers
 
 * Regular grid
 
-  ![](D:\Documents\myProjects\3d_motion_planning\random_images\regular_grid.PNG)
+  ![](https://github.com/abhiojha8/3D-Motion-Planning/blob/master/random_images/regular_grid.PNG)
 
 * An exotic way
 
