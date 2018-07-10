@@ -167,11 +167,6 @@ def a_star(grid, h, start, goal, flight_altitude, waypoint_fn=lambda n: tuple(n[
 
             cost = action.cost + alt_cost
             next_node = tuple(map(op.add, waypoint_fn(current_node), action.delta))
-            # we want to keep the drone flying in relatively low altitude because that's power saving,
-            # on the other hand, the drone shall fly above certain altitude to avoid risk of hitting
-            # pedestrians, cars or other objects in low altitudes.
-            #
-            # limit the drone so that it will at least flying at the lowest flight altitude we specified.
             lowest_alt = int(np.ceil(max(np.ceil(grid[next_node]) + 1, flight_altitude)))
             new_node = (next_node + (lowest_alt,))
 
@@ -181,12 +176,6 @@ def a_star(grid, h, start, goal, flight_altitude, waypoint_fn=lambda n: tuple(n[
                 branch[new_node_2d] = current_node
                 visited.add(new_node_2d)
                 queue.put((new_cost, new_node))
-
-                # beware: since the step size of actions are set to 2, the algorithm
-                # may overshoot the goal and finally report no paths is found
-                #
-                # so here instead of exact equal, I use a range for determine if
-                # the goal is reached
                 if goal_2d[0] - 2 <= new_node_2d[0] <= goal_2d[0] + 2 and \
                         goal_2d[1] - 2 <= new_node_2d[1] <= goal_2d[1] + 2:
                     branch[goal_2d] = current_node
