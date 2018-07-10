@@ -952,4 +952,18 @@ The resultant path can be seen in the image below:
 
 ![](https://github.com/abhiojha8/3D-Motion-Planning/blob/master/random_images/result_path.PNG)
 
-The project video can be seen [here]().
+The project video can be seen [here](https://github.com/abhiojha8/3D-Motion-Planning/blob/master/result_video.mp4).
+
+### Running the project
+
+1. Start the simulator and select Motion Planning.
+
+2. Open command prompt/terminal, source the environment ([setup instructions](https://github.com/abhiojha8/crazyflie_backyard_flyer)) and run the script
+
+   ```sh
+   python motion_planning.py
+   ```
+
+## Acknowledgements
+
+I would like to thank Udacity for their awesome Flying Car Nanodegree. If you are unaware about it, please click [here](https://in.udacity.com/course/flying-car-nanodegree--nd787). With regards to this project, Udacity has designed the simulator, Udacidrone API and given some skeleton code to work with. 
