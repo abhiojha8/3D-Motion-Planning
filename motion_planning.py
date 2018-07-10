@@ -9,9 +9,8 @@ from udacidrone.connection import MavlinkConnection
 from udacidrone.frame_utils import global_to_local, local_to_global
 from udacidrone.messaging import MsgID
 
-from project_utils import create_grid_2_5d, a_star_2_5d, prune_path, heuristic, \
-    visualize_grid_and_pickup_goal, points_collinear_3d, simplify_path, \
-    path_2_5d_to_3d_path
+from planning_utils import create_grid, a_star, path_prune, heuristic, pickup_goal, \
+collinear_points, path_simplify, convert_25d_3d
 
 TARGET_ALTITUDE = 5
 SAFETY_DISTANCE = 5
@@ -25,7 +24,6 @@ class States(Enum):
     LANDING = auto()
     DISARMING = auto()
     PLANNING = auto()
-
 
 class MotionPlanning(Drone):
 
@@ -103,7 +101,7 @@ class MotionPlanning(Drone):
         self.target_position = self.waypoints.pop(0)
         print('target position', self.target_position)
         self.cmd_position(self.target_position[0], self.target_position[1], self.target_position[2],
-                          self.target_position[3])
+                        self.target_position[3])
 
     def landing_transition(self):
         self.flight_state = States.LANDING
@@ -139,8 +137,8 @@ class MotionPlanning(Drone):
         fig = event.artist.figure
         self.temporary_scatter = fig.gca().scatter(east, north, marker='o', c='g')
         fig.canvas.draw()
-        print("You've pick up (lat, lon, alt) {} as the goal. "
-              "Close the figure to continue.".format(self.interactive_goal))
+        print("The goal location is (lat, lon, alt) {}"
+                "Close figure to start simulator.".format(self.interactive_goal))
 
     def grid_coord_to_local_position(self, grid_coord):
         lat = grid_coord[0] + self.north_offset
@@ -155,7 +153,7 @@ class MotionPlanning(Drone):
 
     def plan_path(self):
         self.flight_state = States.PLANNING
-        print("Searching for a path ...")
+        print("Searching path...")
 
         self.target_position[2] = TARGET_ALTITUDE
 
@@ -174,12 +172,12 @@ class MotionPlanning(Drone):
         local_position = global_to_local(global_position, home_position)
 
         print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
-                                                                         self.local_position))
+                                                                        self.local_position))
         # Read in obstacle map
         data = np.loadtxt('colliders.csv', delimiter=',', dtype='Float64', skiprows=2)
 
         # Define a grid for a particular altitude and safety margin around obstacles
-        grid, north_offset, east_offset = create_grid_2_5d(data, SAFETY_DISTANCE)
+        grid, north_offset, east_offset = create_grid(data, SAFETY_DISTANCE)
         self.map_grid = grid
         self.north_offset = north_offset
         self.east_offset = east_offset
@@ -190,12 +188,8 @@ class MotionPlanning(Drone):
         alt_start = int(max(TARGET_ALTITUDE, grid_start[2] + 1, grid[grid_start[0], grid_start[1]] + 1))
         grid_start = grid_start[0], grid_start[1], alt_start
 
-        # visualize grid
-        # goal will be picked up interactively. But if the user (or, you the reviewer lol)
-        # just simply close the grid map, then I've also set a default goal I chose beforehand.
-        #
-        # comment it out and change self.interactive_goal to what you need if you don't like it
-        self.temporary_scatter = visualize_grid_and_pickup_goal(grid, grid_start, self.pick_goal)
+        # visualize grid: interavtive goal pick up
+        self.temporary_scatter = pickup_goal(grid, grid_start, self.pick_goal)
 
         goal = self.interactive_goal
         if len(goal) < 3:
@@ -204,20 +198,17 @@ class MotionPlanning(Drone):
         goal_grid = self.local_position_to_grid_coord(goal_local)
         goal_north, goal_east, goal_alt = goal_grid
         grid_goal = (goal_north,
-                     goal_east,
-                     int(max(grid[goal_north, goal_east] + 1, TARGET_ALTITUDE, goal_alt + 1)))
+                    goal_east,
+                    int(max(grid[goal_north, goal_east] + 1, TARGET_ALTITUDE, goal_alt + 1)))
 
-        print('Start and goal in the grid', grid_start, grid_goal)
-        print("Searching path ... Please be patient")
+        print('Start and Goal location', grid_start, grid_goal)
+        print("Searching path...")
         t0 = time.time()
-        path = a_star_2_5d(grid, heuristic, grid_start, grid_goal, TARGET_ALTITUDE)
-        print("Path planned by 2.5D A* planner:", path)
-        path = path_2_5d_to_3d_path(path)
-        print("Path in 3D:", path)
-        path = prune_path(path, points_collinear_3d)
-        print("Path after prunning:", path)
-        path = simplify_path(grid, path)
-        print("Search done. Take {} seconds in total".format(time.time() - t0))
+        path = a_star(grid, heuristic, grid_start, grid_goal, TARGET_ALTITUDE)
+        path = path_prune(path, collinear_points)
+        print("3D Pruned Path:", path)
+        path = path_simplify(grid, path)
+        print("Path found!".format(time.time() - t0))
         print(path)
         self.path = path
         waypoints = self.path_to_waypoints(path)
@@ -238,14 +229,8 @@ class MotionPlanning(Drone):
 
     def start(self):
         self.start_log("Logs", "NavLog.txt")
-
         print("starting connection")
         self.connection.start()
-
-        # Only required if they do threaded
-        # while self.in_mission:
-        #    pass
-
         self.stop_log()
 
 
