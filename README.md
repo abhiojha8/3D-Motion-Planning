@@ -946,3 +946,7 @@ The following paper, [Path Planning for Non-Circular Micro Aerial Vehicles in C
 
 ## 3D Motion Planning Project
 
+For implementation, I have used 2.5 D grid maps, A* search, Euclidean distance heuristic. The code can be seen in files [planning_utils.py](https://github.com/abhiojha8/3D-Motion-Planning/blob/master/planning_utils.py) and [motion_planning.py](https://github.com/abhiojha8/3D-Motion-Planning/blob/master/motion_planning.py).
+
+The resultant path can be seen in the image below:
+

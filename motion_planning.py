@@ -15,7 +15,6 @@ collinear_points, path_simplify, convert_25d_3d
 TARGET_ALTITUDE = 5
 SAFETY_DISTANCE = 5
 
-
 class States(Enum):
     MANUAL = auto()
     ARMING = auto()
@@ -130,7 +129,7 @@ class MotionPlanning(Drone):
         east = int(evt.xdata)
         north = int(evt.ydata)
         alt = self.map_grid[north, east]
-        self.interactive_goal = local_to_global(self.grid_coord_to_local_position((north, east, alt)), self.global_home)
+        self.interactive_goal = local_to_global(self.grid_to_local((north, east, alt)), self.global_home)
 
         if self.temporary_scatter is not None:
             self.temporary_scatter.remove()
@@ -140,12 +139,12 @@ class MotionPlanning(Drone):
         print("The goal location is (lat, lon, alt) {}"
                 "Close figure to start simulator.".format(self.interactive_goal))
 
-    def grid_coord_to_local_position(self, grid_coord):
+    def grid_to_local(self, grid_coord):
         lat = grid_coord[0] + self.north_offset
         lon = grid_coord[1] + self.east_offset
         return lat, lon, -grid_coord[2]
 
-    def local_position_to_grid_coord(self, position):
+    def local_to_grid(self, position):
         north = int(position[0] - self.north_offset)
         east = int(position[1] - self.east_offset)
         alt = int(-position[2])
@@ -184,7 +183,7 @@ class MotionPlanning(Drone):
 
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # starting point on the grid
-        grid_start = self.local_position_to_grid_coord(local_position)
+        grid_start = self.local_to_grid(local_position)
         alt_start = int(max(TARGET_ALTITUDE, grid_start[2] + 1, grid[grid_start[0], grid_start[1]] + 1))
         grid_start = grid_start[0], grid_start[1], alt_start
 
@@ -195,7 +194,7 @@ class MotionPlanning(Drone):
         if len(goal) < 3:
             goal = (goal[0], goal[1], 0)
         goal_local = global_to_local(goal, self.global_home)
-        goal_grid = self.local_position_to_grid_coord(goal_local)
+        goal_grid = self.local_to_grid(goal_local)
         goal_north, goal_east, goal_alt = goal_grid
         grid_goal = (goal_north,
                     goal_east,
@@ -203,12 +202,11 @@ class MotionPlanning(Drone):
 
         print('Start and Goal location', grid_start, grid_goal)
         print("Searching path...")
-        t0 = time.time()
         path = a_star(grid, heuristic, grid_start, grid_goal, TARGET_ALTITUDE)
         path = path_prune(path, collinear_points)
         print("3D Pruned Path:", path)
         path = path_simplify(grid, path)
-        print("Path found!".format(time.time() - t0))
+        print("Path found!")
         print(path)
         self.path = path
         waypoints = self.path_to_waypoints(path)

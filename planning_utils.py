@@ -14,10 +14,10 @@ class Action(Enum):
     Actions are only stored as how the will alter the location.
     Costs are inferred from them.
     """
-    WEST = (0, -2)
-    EAST = (0, 2)
-    NORTH = (-2, 0)
-    SOUTH = (2, 0)
+    WEST = (0, -4)
+    EAST = (0, 4)
+    NORTH = (-4, 0)
+    SOUTH = (4, 0)
 
     @property
     def delta(self):
@@ -83,18 +83,13 @@ def valid_actions(grid, current_node):
     for action in actions:
         dn, de = action.delta
         nn, ne = n + dn, e + de
-        # theoretically, a drone can climb up as high as the obstacles then fly over them.
-        # in reality, climbing up always requires more thrust power, so it is not always a better
-        # choice to climb up when facing with obstacles
-        #
-        # here I made a simplification: when the drone need to go up 10 meters more than it's current
+        # when the drone need to go up 10 meters more than it's current
         # altitude, then going up will be ignored.
         if not (nn < 0 or nn > north_max or
                 ne < 0 or ne > east_max):
             # altitude cost. going up will always cost more
             altitude_cost = max(grid[nn, ne] - a, 0) * 50
             valid.append((altitude_cost, action))
-
     return valid
 
 
@@ -207,7 +202,7 @@ def a_star(grid, h, start, goal, flight_altitude, waypoint_fn=lambda n: tuple(n[
         return None
 
 
-def path_25d_3d(path):
+def convert_25d_3d(path):
     """
     Convert plan in 2.5D to 3D grid map
     """
@@ -240,7 +235,7 @@ def pickup_goal(grid, start, callback):
     plt.show()
 
 
-def simplify_path(grid, path):
+def path_simplify(grid, path):
     """
     Test many nodes and find the longest possible direct path between them.
     """
