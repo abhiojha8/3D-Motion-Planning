@@ -943,3 +943,6 @@ The probabilistic mapping technique used above, to build a graph around obstacle
 Receding horizon planning is a two-tiered approach to solving the planning problem. First, we find a coarse global plan all the way from the start to the goal. Then, as we execute that plan, we continuously re-plan in a local volume around the vehicle at a higher resolution. This approach allows for fine tuning our plan on the fly, reacting to obstacles that weren't on the map or other uncertainties, like sensor errors or wind. This planning approach will be looked at in future developments of this project.
 
 The following paper, [Path Planning for Non-Circular Micro Aerial Vehicles in Constrained Environments](https://www.cs.cmu.edu/~maxim/files/pathplanforMAV_icra13.pdf), addresses the problem of path planning for a quadrotor using more advanced techniques.
+
+## 3D Motion Planning Project
+

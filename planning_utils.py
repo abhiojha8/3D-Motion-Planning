@@ -14,23 +14,10 @@ class Action(Enum):
     Actions are only stored as how the will alter the location.
     Costs are inferred from them.
     """
-
-    # I've used a step size of 2 when performing 2.5D A* search
-    # This will surely speed up the searching, with drawback that
-    # the algorithm may not find a valid way to the goal because of
-    # overshooting
-    #
-    # to handle with this, A* search will stop when the algorithm found
-    # a location near to the goal (see `a_star` below)
-    WEST = (0, -4)
-    EAST = (0, 4)
-    NORTH = (-4, 0)
-    SOUTH = (4, 0)
-
-    # NORTH_EAST = (1, 1)
-    # SOUTH_EAST = (1, -1)
-    # SOUTH_WEST = (-1, -1)
-    # NORTH_WEST = (-1, 1)
+    WEST = (0, -2)
+    EAST = (0, 2)
+    NORTH = (-2, 0)
+    SOUTH = (2, 0)
 
     @property
     def delta(self):
@@ -44,10 +31,6 @@ class Action(Enum):
 def create_grid(data, safe_distance):
     """
     Create a 2.5D grid from given obstacle data.
-
-    :param data: obstacle data
-    :param safe_distance: safe distance added to the surrounding of obstacle
-    :return: grid-based 2.5D configuration space
     """
     # minimum and maximum north coordinates
     north_min = np.floor(np.min(data[:, 0] - data[:, 3]))
@@ -82,17 +65,9 @@ def create_grid(data, safe_distance):
 
 def heuristic(position, goal):
     """
-    Heuristic function used for A* planning. Simply return the euclidean distance of the two points given.
+    Returns the eucledian distance between 2 points.
     """
     return np.linalg.norm(np.array(position) - np.array(goal))
-
-
-def heuristic_manhattan_dist_2d(position, goal):
-    """
-    Heuristic function used for calculating manhattan distance between given 2D points.
-    """
-    return abs(position[0] - goal[0]) + abs(position[1] - goal[1])
-
 
 def valid_actions(grid, current_node):
     """
@@ -139,18 +114,14 @@ def reconstruct_path(goal, branch, waypoint_fn):
 
 def collinear_points(p1, p2, p3):
     """
-    By computing the cross product of \vec{p_1 p_2} and \vec{p_2 p_3}, if the result is zero (vector),
-    then the 3 points are collinear.
+    Check collinearity by using vector cross product
     """
     return np.allclose(np.cross(np.array(p1) - np.array(p2), np.array(p2) - np.array(p3)), (0, 0, 0))
 
 
 def path_prune(path, collinear_fn):
     """
-    Remove unnecessary intermediate waypoints in the path.
-
-    param path: path to be pruned
-    param collinear_fn: collinearity testing function used for determine if points are collinear
+    prune the path, i.e. remove unnecessary waypoints that are collinear to each other
     """
     if len(path) <= 1:
         return path[:]
@@ -179,16 +150,7 @@ def local_path_to_global_path(path, start_local, north_span, east_span, altitude
 
 def a_star(grid, h, start, goal, flight_altitude, waypoint_fn=lambda n: tuple(n[:2])):
     """
-    Perform 2.5D A* search
-
-    :param grid: The 2.5D grid map
-    :param h: heuristic function
-    :param start: start node in the grid. shall be a 3-element tuple (north, east, altitude) specified in local grid
-    coordinates. altitudes shall be specified as positive up.
-    :param goal: goal node in the grid.
-    :param flight_altitude: target flight altitude
-    :param waypoint_fn: a function extracting 2D representation of nodes.
-    :return: A path from start to goal in grid coordinate.
+    2.5D A* search
     """
     t0 = time.time()
     start_2d = waypoint_fn(start)
@@ -247,10 +209,7 @@ def a_star(grid, h, start, goal, flight_altitude, waypoint_fn=lambda n: tuple(n[
 
 def path_25d_3d(path):
     """
-    Convert plan in 2.5D to 3D
-
-    In details, loop over each waypoint in the path. If altitude of current waypoint is different with the previous
-    one, insert a transition waypoint that alter the altitude only between them
+    Convert plan in 2.5D to 3D grid map
     """
     path_3d = [path[0]]
     previous = path[0]
@@ -267,7 +226,7 @@ def path_25d_3d(path):
 
 def pickup_goal(grid, start, callback):
     """
-    Visualize 2.5D grid and wait for the goal being picked up
+    Pick up goal from the 2.5D grid map
     """
     im = plt.imshow(grid, cmap='gray_r', picker=True)
     plt.axis((0, grid.shape[1], 0, grid.shape[0]))
@@ -277,14 +236,13 @@ def pickup_goal(grid, start, callback):
     fig = plt.gcf()
     fig.colorbar(im)
     fig.canvas.mpl_connect('pick_event', callback)
-    plt.gca().set_title("Pickup the goal on the map\n(close the figure to continue)", fontsize=16)
+    plt.gca().set_title("Choose the goal location\n(close the figure to continue)", fontsize=18)
     plt.show()
 
 
 def simplify_path(grid, path):
     """
-    Check against path[0] --- path[-1], path[0] --- path[-2], ... path[0] --- path[1],
-    see whether we have a direct path among them. Returns the longest path once we have found one.
+    Test many nodes and find the longest possible direct path between them.
     """
     if len(path) <= 2:
         return path
@@ -307,7 +265,7 @@ def simplify_path(grid, path):
         if has_obs:
             end_idx -= 1
             if end_idx == start_idx:
-                print("Warning. No clear path starts from {}".format(path[start_idx]))
+                print("No direct path! {}".format(path[start_idx]))
         else:
             result_path.append(end)
             start_idx = end_idx
@@ -315,7 +273,7 @@ def simplify_path(grid, path):
     if result_path[-1] != path[-1]:
         result_path.append(path[-1])
 
-    print("Result path:", result_path)
+    print("Final path:", result_path)
     return result_path
 
 
